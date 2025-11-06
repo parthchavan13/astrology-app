@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import socket from "./socket";
-
+//sridhar pushing "v.1.1"
 function App() {
   const [userId, setUserId] = useState("");
   const [receiverId, setReceiverId] = useState("");
@@ -12,7 +12,7 @@ function App() {
     if (userId) {
       socket.emit("join", userId);
     }
-
+git 
     // Listen for messages
     socket.on("message", (data) => {
       setChat((prev) => [...prev, data]);
