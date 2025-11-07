@@ -50,7 +50,7 @@ const Home = () => {
                 <p className="text-gray-600 text-sm mt-2">
                   Expert in Vedic Astrology, Kundali Reading, and Palmistry
                 </p>
-                <button className="mt-4 bg-orange-500 text-white px-4 py-2 rounded-lg w-full hover:bg-orange-600">
+                <button  onClick={() => navigate(`/astrologer/${astro._id}`)} className="mt-4 bg-orange-500 text-white px-4 py-2 rounded-lg w-full hover:bg-orange-600">
                   Chat Now
                 </button>
               </div>
