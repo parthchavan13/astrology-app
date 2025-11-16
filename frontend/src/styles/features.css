@@ -1,0 +1,79 @@
+.features-section {
+  text-align: center;
+  padding: 5rem 1rem;
+  background-color: #fff6ec;
+}
+
+/* Fix title & subtitle */
+.features-section h2.section-title {
+  font-size: 2.2rem;
+  font-weight: 700;
+  margin-bottom: 0.5rem;
+  color: #222;
+}
+
+.features-section .section-subtitle {
+  color: #666;
+  font-size: 1.1rem;
+  margin-bottom: 2.5rem;
+}
+
+/* Responsive Grid Layout */
+.features-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 2rem;
+  max-width: 1100px;
+  margin: 0 auto;
+}
+
+/* Card Styling */
+.feature-card {
+  background: white;
+  border-radius: 16px;
+  padding: 2rem 1.5rem;
+  box-shadow: 0 6px 14px rgba(0, 0, 0, 0.05);
+  transition: all 0.3s ease;
+  text-align: center;
+}
+
+.feature-card:hover {
+  transform: translateY(-6px);
+  box-shadow: 0 10px 20px rgba(255, 153, 0, 0.25);
+}
+
+/* Icon */
+.feature-icon {
+  font-size: 2.5rem;
+  margin-bottom: 1rem;
+  background: linear-gradient(135deg, #ffb347, #ff7b00);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+/* Title */
+.feature-card h3 {
+  font-size: 1.3rem;
+  margin-bottom: 0.8rem;
+  color: #222;
+}
+
+/* Description */
+.feature-card p {
+  color: #555;
+  font-size: 0.95rem;
+  line-height: 1.6;
+}
+
+/* Responsiveness */
+@media (max-width: 768px) {
+  .feature-card {
+    padding: 1.5rem 1rem;
+  }
+  .feature-card h3 {
+    font-size: 1.1rem;
+  }
+  .feature-icon {
+    font-size: 2rem;
+  }
+}

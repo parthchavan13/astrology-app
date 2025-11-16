@@ -1,6 +1,6 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useNavigate, Link } from "react-router-dom";
-import API from "../../services/api";
+import { loginUser } from "../../services/authApi";
 
 export default function Login() {
   const navigate = useNavigate();
@@ -8,41 +8,48 @@ export default function Login() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
+  // If already logged in, redirect user based on role
+  useEffect(() => {
+    const token = localStorage.getItem("token");
+    const role = localStorage.getItem("role");
+
+    if (token && role === "user") {
+      navigate("/user/home");
+    }
+  }, [navigate]);
+
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
   const handleSubmit = async (e) => {
-    e.preventDefault();
+  e.preventDefault();
+  setError("");
+  setLoading(true);
 
-    setError("");
-    setLoading(true);
-    try {
-      const res = await API.post("/auth/login", formData);
-      console.log("✅ Login Response:", res.data);
+  try {
+    const res = await loginUser(formData);
 
-      // ✅ Extract correct fields
-      // const { token, user } = res.data;
-      console.log(res.data.token);
-      if (res.data.token) {
-        localStorage.setItem("token", res.data.token);
-        localStorage.setItem("userId", res.data._id); 
-        localStorage.setItem("user", JSON.stringify(res.data.email));
+    if (res?.success) {
+      const { token, data: user } = res;
 
-        console.log("🟢 Stored userId:", res.data._id);
+      localStorage.setItem("token", token);
+      localStorage.setItem("role", "user");
+      localStorage.setItem("userId", user._id);
+      localStorage.setItem("user", JSON.stringify(user));
+      localStorage.setItem("userName", user.name || user.email);
 
-
-        navigate(`/user/${res.data._id}`);
-      } else {
-        setError("Invalid response from server — missing token or user data");
-      }
-    } catch (err) {
-      console.error("❌ Login Error:", err);
-      setError(err.response?.data?.message || "Login failed");
-    } finally {
-      setLoading(false);
+      navigate("/user/home");
+    } else {
+      setError("Invalid login response. Please try again.");
     }
-  };
+  } catch (err) {
+    setError(err?.response?.data?.message || "Login failed");
+  } finally {
+    setLoading(false);
+  }
+};
+
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-b from-yellow-50 to-orange-100 px-4">
@@ -60,20 +67,24 @@ export default function Login() {
             type="email"
             name="email"
             placeholder="Email Address"
+            autoComplete="email"
             onChange={handleChange}
             value={formData.email}
             className="w-full border border-orange-300 rounded-lg p-3 focus:outline-none focus:ring-2 focus:ring-orange-400"
             required
           />
+
           <input
             type="password"
             name="password"
             placeholder="Password"
+            autoComplete="current-password"
             onChange={handleChange}
             value={formData.password}
             className="w-full border border-orange-300 rounded-lg p-3 focus:outline-none focus:ring-2 focus:ring-orange-400"
             required
           />
+
           <button
             type="submit"
             disabled={loading}
@@ -90,7 +101,7 @@ export default function Login() {
         <p className="text-center text-gray-600 text-sm mt-6">
           Don’t have an account?{" "}
           <Link
-            to="/signup"
+            to="/register"
             className="text-orange-600 font-semibold hover:underline"
           >
             Sign Up

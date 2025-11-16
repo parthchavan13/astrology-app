@@ -1,0 +1,112 @@
+/* ==========================
+   Global Theme & Structure
+   ========================== */
+
+:root {
+  --primary: #ff7b00;
+  --primary-light: #ffb347;
+  --text: #222;
+  --text-light: #555;
+  --bg: #fffaf3;
+  --bg-alt: #fff3e0;
+  --section-gap: 5rem;
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html, body {
+  height: 100%;
+  width: 100%;
+  font-family: "Poppins", sans-serif;
+  background-color: var(--bg);
+  color: var(--text);
+  scroll-behavior: smooth;
+  overflow-x: hidden;
+}
+
+/* ====== Reusable Layout Wrappers ====== */
+.container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 1.5rem;
+}
+
+section {
+  padding: var(--section-gap) 0;
+  width: 100%;
+}
+
+section:nth-of-type(even) {
+  background-color: var(--bg-alt);
+}
+
+/* ====== Section Titles ====== */
+.section-title {
+  text-align: center;
+  font-size: 2.2rem;
+  font-weight: 700;
+  color: var(--text);
+  margin-bottom: 1rem;
+}
+
+.section-subtitle {
+  text-align: center;
+  color: var(--text-light);
+  font-size: 1.1rem;
+  margin-bottom: 2rem;
+}
+
+/* ====== Buttons ====== */
+.btn-primary {
+  background: linear-gradient(135deg, var(--primary-light), var(--primary));
+  color: white;
+  border: none;
+  border-radius: 8px;
+  padding: 0.9rem 1.8rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.btn-primary:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 4px 10px rgba(255, 123, 0, 0.3);
+}
+
+.btn-outline {
+  background: transparent;
+  border: 2px solid var(--primary);
+  color: var(--primary);
+  border-radius: 8px;
+  padding: 0.9rem 1.8rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.btn-outline:hover {
+  background: var(--primary);
+  color: white;
+}
+
+/* ====== Image Defaults ====== */
+img {
+  display: block;
+  max-width: 100%;
+  height: auto;
+  border: none;
+}
+
+/* ====== Smooth transitions ====== */
+a, button, h1, h2, h3, p {
+  transition: all 0.3s ease;
+}
+
+/* ====== Utility ====== */
+.text-center {
+  text-align: center;
+}

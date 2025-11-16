@@ -12,7 +12,8 @@ body {
   overflow-x: hidden;
   background-color: #fff; /* Set to your preferred light color */
   color: #1a1a1a;
-  font-family: system-ui, Avenir, Helvetica, Arial, sans-serif;
+  /* font-family: system-ui, Avenir, Helvetica, Arial, sans-serif; */
+  font-family: 'Poppins', sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }

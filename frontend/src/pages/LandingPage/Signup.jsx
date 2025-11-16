@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
-import API from "../../services/api"; // use your axios instance
+import { logoutUser } from "../../services/authApi";
 
 export default function Signup() {
   const navigate = useNavigate();

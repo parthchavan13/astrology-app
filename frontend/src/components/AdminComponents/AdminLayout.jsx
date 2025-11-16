@@ -2,18 +2,16 @@ import Sidebar from "./Sidebar";
 import Topbar from "./Topbar";
 import { Outlet } from "react-router-dom";
 
-const AdminLayout = ({ children }) => {
+const AdminLayout = () => {
   return (
-    <div className="flex">
-   <Sidebar />
-      <div className="ml-64 w-full">
+    <div className="flex min-h-screen bg-gray-50">
+      <Sidebar />
+      <div className="flex flex-col flex-1 ml-64">
         <Topbar />
-              <main className="flex-1 bg-gray-50 p-6">
-        <Outlet /> 
-      </main>
-        <div className="p-6 bg-gray-100 min-h-screen">{children}</div>
+        <main className="flex-1 p-6">
+          <Outlet /> {/* Child routes will render here */}
+        </main>
       </div>
-
     </div>
   );
 };

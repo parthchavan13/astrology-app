@@ -1,61 +1,71 @@
-import { useEffect, useState } from "react";
+// src/pages/Admin/ManagePandits.jsx
+import React, { useEffect, useState } from "react";
+import axios from "axios";
+import AdminNavbar from "./AdminNavbar";
 
 const ManagePandits = () => {
-  const [pandits, setPandits] = useState([]);
+  const [pendingPandits, setPendingPandits] = useState([]);
 
   useEffect(() => {
-    // later: fetch from API
-    setPandits([
-      { id: 1, name: "Pandit Rajesh Sharma", status: "approved", rating: 4.8 },
-      { id: 2, name: "Pandit Meera Joshi", status: "pending", rating: 4.5 },
-      { id: 3, name: "Pandit Arjun Rao", status: "rejected", rating: 4.1 },
-    ]);
+    const fetchPandits = async () => {
+      const token = localStorage.getItem("adminToken");
+      const res = await axios.get("/api/admin/pandit-requests", {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      setPendingPandits(res.data);
+    };
+    fetchPandits();
   }, []);
 
-  const handleStatusChange = (id, newStatus) => {
-    setPandits((prev) =>
-      prev.map((p) => (p.id === id ? { ...p, status: newStatus } : p))
-    );
+  const approvePandit = async (id) => {
+    const token = localStorage.getItem("adminToken");
+    await axios.post(`/api/admin/approve-pandit/${id}`, {}, {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    setPendingPandits(pendingPandits.filter((p) => p._id !== id));
+  };
+
+  const rejectPandit = async (id) => {
+    const token = localStorage.getItem("adminToken");
+    await axios.post(`/api/admin/reject-pandit/${id}`, {}, {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    setPendingPandits(pendingPandits.filter((p) => p._id !== id));
   };
 
   return (
-    <div>
-      <h2 className="text-2xl font-semibold mb-6">Manage Pandits</h2>
-
-      <div className="bg-white p-6 rounded-xl shadow-md">
-        <table className="w-full text-left border-collapse">
-          <thead>
-            <tr className="border-b text-gray-600">
-              <th className="p-3">Name</th>
-              <th className="p-3">Rating</th>
-              <th className="p-3">Status</th>
-              <th className="p-3">Actions</th>
-            </tr>
-          </thead>
-          <tbody>
-            {pandits.map((p) => (
-              <tr key={p.id} className="border-b hover:bg-gray-50">
-                <td className="p-3">{p.name}</td>
-                <td className="p-3">{p.rating}</td>
-                <td className="p-3 capitalize">{p.status}</td>
-                <td className="p-3 flex gap-2">
-                  <button
-                    onClick={() => handleStatusChange(p.id, "approved")}
-                    className="px-3 py-1 text-sm bg-green-500 text-white rounded-md"
-                  >
-                    Approve
-                  </button>
-                  <button
-                    onClick={() => handleStatusChange(p.id, "rejected")}
-                    className="px-3 py-1 text-sm bg-red-500 text-white rounded-md"
-                  >
-                    Reject
-                  </button>
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
+    <div className="min-h-screen bg-gray-100">
+      <AdminNavbar />
+      <div className="p-8">
+        <h1 className="text-2xl font-bold mb-6">Manage Pandit Requests</h1>
+        <div className="grid gap-4">
+          {pendingPandits.map((pandit) => (
+            <div
+              key={pandit._id}
+              className="bg-white p-4 rounded-lg shadow flex justify-between items-center"
+            >
+              <div>
+                <h2 className="font-semibold text-lg">{pandit.name}</h2>
+                <p>{pandit.email}</p>
+                <p>{pandit.languages.join(", ")}</p>
+              </div>
+              <div className="flex gap-3">
+                <button
+                  onClick={() => approvePandit(pandit._id)}
+                  className="bg-green-500 text-white px-4 py-2 rounded-lg"
+                >
+                  Approve
+                </button>
+                <button
+                  onClick={() => rejectPandit(pandit._id)}
+                  className="bg-red-500 text-white px-4 py-2 rounded-lg"
+                >
+                  Reject
+                </button>
+              </div>
+            </div>
+          ))}
+        </div>
       </div>
     </div>
   );

@@ -4,7 +4,7 @@ Astro Connect is a **full-stack astrology platform** built with the **MERN stack
 It enables:
 - 🔮 **Users** to register, explore astrologers (Pandits), chat/call/book sessions.
 - 🧘‍♂️ **Pandits** to manage profiles, handle bookings, and view wallet earnings.
-- 🧑‍💼 **Admins** to manage users, pandits, and transactions via a powerful dashboard.
+- 🧑‍💼 **Admins** to manage users, pandit, and transactions via a powerful dashboard.
 
 ---
 
@@ -176,17 +176,17 @@ User APIs
 Method	Endpoint	Description
 POST	/api/auth/register	Register new user
 POST	/api/auth/login	Login and get token
-GET	/api/users/:id/dashboard	Fetch user details, chats, and pandits
+GET	/api/users/:id/dashboard	Fetch user details, chats, and pandit
 Pandit APIs
 Method	Endpoint	Description
-POST	/api/pandits/register	Register new Pandit
-POST	/api/pandits/login	Login Pandit
-GET	/api/pandits/:id/dashboard	Get Pandit profile data
+POST	/api/pandit/register	Register new Pandit
+POST	/api/pandit/login	Login Pandit
+GET	/api/pandit/:id/dashboard	Get Pandit profile data
 Admin APIs
 Method	Endpoint	Description
 GET	/api/admin/dashboard	Fetch overall analytics
 GET	/api/admin/users	Manage users
-GET	/api/admin/pandits	Manage pandits
+GET	/api/admin/pandit	Manage pandit
 GET	/api/admin/transactions	Track payments
 💻 Run the Project Locally
 1️⃣ Clone the repository
@@ -227,7 +227,7 @@ Response:
     "email": "ramesh@gmail.com",
     "zodiac": "Leo"
   },
-  "pandits": [
+  "pandit": [
     { "_id": "64ad...", "name": "Pandit Rajesh Sharma", "expertise": "Vedic Astrology", "rating": 4.8 }
   ],
   "chats": [
@@ -291,5 +291,5 @@ Multi-language support
 
 ---
 
-Would you like me to include a **setup script example** (like a `seed.js` file to auto-create sample users and pandits for testing)?  
+Would you like me to include a **setup script example** (like a `seed.js` file to auto-create sample users and pandit for testing)?  
 That would make your local setup completely plug-and-play.

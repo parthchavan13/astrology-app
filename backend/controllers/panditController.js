@@ -1,83 +1,84 @@
 import Pandit from "../models/Pandit.js";
-import jwt from "jsonwebtoken";
-import ChatSession from "../models/chat.js"; // to fetch user-pending chat sessions
-// Generate JWT
-const generateToken = (id) => {
-  return jwt.sign({ id }, process.env.JWT_SECRET, { expiresIn: "1h" });
-};
+import ChatSession from "../models/chat.js";
+import generateToken from "../utils/generateToken.js";
 
-// @desc    Register a new Pandit
-// @route   POST /api/pandits/register
-// @access  Public  
+/* =========================================================
+     TEMP In-Memory Status Storage (Defined at TOP)
+   ========================================================= */
+let panditStatuses = {}; // { panditId: true/false }
+
+
+
+/* =========================================================
+     REGISTER PANDIT
+   ========================================================= */
 export const registerPandit = async (req, res) => {
   try {
     console.log("📥 Incoming Registration Data:", req.body);
+    console.log("🖼 Uploaded file:", req.file?.filename);
 
-    // Check if email already exists
-    const existingPandit = await Pandit.findOne({ email: req.body.email });
-    if (existingPandit) {
-      return res.status(400).json({
-        success: false,
-        message: "Email is already registered",
-      });
+    const { name, dob, gender, languages, skills, otherSkill, email } = req.body;
+
+    if (!name || !dob || !gender || !languages || !skills || !email) {
+      return res.status(400).json({ success: false, message: "All required fields must be filled" });
     }
 
-    // Create Pandit document
-    const pandit = new Pandit(req.body);
+    const existingPandit = await Pandit.findOne({ email });
+    if (existingPandit) {
+      return res.status(400).json({ success: false, message: "Email already registered" });
+    }
 
-    // Save to DB
+    const parsedLanguages =
+      typeof languages === "string" ? languages.split(",").map((l) => l.trim()) : languages;
+
+    const parsedSkills =
+      typeof skills === "string" ? JSON.parse(skills) : skills;
+
+    const pandit = new Pandit({
+      name,
+      dob,
+      gender,
+      languages: parsedLanguages,
+      skills: parsedSkills,
+      otherSkill,
+      email,
+      status: "pending",
+      createdByAdmin: false,
+      isVerified: false,
+    });
+
+    if (req.file) pandit.image = `/uploads/${req.file.filename}`;
+
     await pandit.save();
 
-    // Generate JWT (for authentication + socket session auth later)
-    const token = jwt.sign(
-      { id: pandit._id, role: "pandit" },
-      process.env.JWT_SECRET,
-      { expiresIn: "7d" }
-    );
+    console.log("✅ Pandit Registered:", pandit.email);
 
-    // Send response (never include password)
-    const panditData = pandit.toObject();
-    delete panditData.password;
-
-    console.log("✅ Pandit Registered:", panditData.email);
-
-    res.status(201).json({
+    return res.status(201).json({
       success: true,
-      message: "Pandit registered successfully",
-      token,
-      data: panditData,
+      message: "Registration successful! Await admin approval.",
+      data: {
+        _id: pandit._id,
+        name: pandit.name,
+        email: pandit.email,
+        image: pandit.image,
+        status: pandit.status,
+      },
     });
   } catch (error) {
     console.error("❌ Error in registerPandit:", error);
-    res.status(400).json({
-      success: false,
-      message: error.message || "Registration failed",
-      errors: error.errors || null,
-    });
+    return res.status(500).json({ success: false, message: "Server error", error: error.message });
   }
 };
 
-export const getAllPandits = async (req, res) => {
-  try {
-    const pandits = await Pandit.find(); // Fetch all
-    res.status(200).json({
-      success: true,
-      count: pandits.length,
-      pandits,
-    });
-  } catch (error) {
-    console.error("❌ Error fetching pandits:", error);
-    res.status(500).json({ success: false, message: "Server error" });
-  }
-};
- 
-// @desc    Login Pandit
-// @route   POST /api/pandits/login
-// @access  Public
+
+
+/* =========================================================
+     LOGIN PANDIT  (FIXED)
+   ========================================================= */
 export const loginPandit = async (req, res) => {
   try {
     const { email, password } = req.body;
-    console.log("Body recieved:". email);
+
     if (!email || !password) {
       return res.status(400).json({
         success: false,
@@ -85,9 +86,7 @@ export const loginPandit = async (req, res) => {
       });
     }
 
-    // ✅ Explicitly include password since it's excluded by default
     const pandit = await Pandit.findOne({ email }).select("+password");
-
     if (!pandit) {
       return res.status(404).json({
         success: false,
@@ -95,9 +94,7 @@ export const loginPandit = async (req, res) => {
       });
     }
 
-    // ✅ Compare entered password with hashed password
     const isMatch = await pandit.matchPassword(password);
-
     if (!isMatch) {
       return res.status(401).json({
         success: false,
@@ -105,30 +102,27 @@ export const loginPandit = async (req, res) => {
       });
     }
 
-    // ✅ Generate JWT (with role for sockets)
-    const token = jwt.sign(
-      { id: pandit._id, role: "pandit" },
-      process.env.JWT_SECRET,
-      { expiresIn: "7d" }
-    );
+    const token = generateToken(pandit._id, "pandit");
 
-    console.log("token found",token);
+    console.log(`🔥 Pandit Logged In: ${pandit.email}`);
 
-    // ✅ Exclude password before sending
-    const panditData = pandit.toObject();
-    delete panditData.password;
-
-    console.log(`✅ Pandit Logged In: ${pandit.email}`);
-
-    res.status(200).json({
+    return res.status(200).json({
       success: true,
       message: "Login successful",
       token,
-      data: panditData,
+      data: {
+        _id: pandit._id,
+        name: pandit.name,
+        email: pandit.email,
+        role: pandit.role,
+        image: pandit.image || null,
+        status: pandit.status,
+      },
     });
+
   } catch (error) {
     console.error("❌ Error in loginPandit:", error);
-    res.status(500).json({
+    return res.status(500).json({
       success: false,
       message: "Login failed",
       error: error.message,
@@ -136,77 +130,138 @@ export const loginPandit = async (req, res) => {
   }
 };
 
-// @desc    Get Pandit Dashboard (profile data)
-// @route   GET /api/pandits/:id/dashboard
-// @access  Private
-// export const getPanditDashboard = async (req, res) => {
-//   try {
-//     const { id } = req.params;
-//     const pandit = await Pandit.findById(id).select("-password");
-
-//     if (!pandit) {
-//       return res.status(404).json({ message: "Pandit not found" });
-//     }
-
-//     res.status(200).json({
-//       pandit,
-//       stats: {
-//         totalSessions: 10,
-//         totalEarnings: 3200,
-//         rating: pandit.rating,
-//       },
-//     });
-//   } catch (error) {
-//     console.error("Error in getPanditDashboard:", error);
-//     res.status(500).json({ message: "Server Error" });
-//   }
-// };
 
 
-
-export const getPanditDashboard = async (req, res) => {
+/* =========================================================
+     GET ALL PANDITS
+   ========================================================= */
+export const getAllPandits = async (req, res) => {
   try {
-    const panditId = req.params.id;
-    console.log(panditId);
-    const pandit = await Pandit.findById(panditId).select("-password");
-    if (!pandit) {
-      return res.status(404).json({ success: false, message: "Pandit not found" });
-    }
-    console.log(pandit);
-    // 🧩 Fetch all chat sessions or bookings related to this Pandit
-    const sessions = await ChatSession.find({ panditId }).populate("userId", "name email");
-
-    // Transform the sessions into recentOrders-like structure
-    const recentOrders = sessions.map((session) => ({
-      id: session._id,
-      userId: session.userId._id,
-      client: session.userId.name,
-      email: session.userId.email,
-      status: session.isActive ? "Active" : "Closed",
-      date: new Date(session.updatedAt).toLocaleDateString(),
-    }));
-
-    // Dummy stats (you can calculate from DB if you have orders)
-    const stats = {
-      pending: recentOrders.filter((o) => o.status === "Active").length,
-      upcoming: 1,
-      completed: 5,
-      walletBalance: 2450,
-    };
+    const pandit = await Pandit.find().select("-password");
 
     return res.status(200).json({
       success: true,
+      count: pandit.length,
       pandit,
-      stats,
-      recentOrders,
     });
+
   } catch (error) {
-    console.error("❌ Error in getPanditDashboard:", error);
+    console.error("❌ Error fetching pandit:", error);
     return res.status(500).json({
       success: false,
-      message: "Internal Server Error",
+      message: "Server error",
       error: error.message,
     });
   }
 };
 
+
+
+/* =========================================================
+     PANDIT DASHBOARD (FIXED — All inside try block)
+   ========================================================= */
+export const getPanditDashboard = async (req, res) => {
+  try {
+    const panditId = req.params.id;
+
+    const dashboardData = {
+      success: true,
+      panditId,
+
+      earnings: {
+        today: 120,
+        total: 5400,
+        wallet: 800,
+      },
+
+      profile: {
+        completion: 75,
+        isOnline: panditStatuses[panditId] ?? false,
+      },
+
+      requests: [
+        {
+          id: "req101",
+          user: "Amit Sharma",
+          type: "chat",
+          time: new Date().toISOString(),
+        },
+        {
+          id: "req102",
+          user: "Priya",
+          type: "call",
+          time: new Date().toISOString(),
+        },
+      ],
+
+      activeSessions: [
+        {
+          sessionId: "sess001",
+          user: "Rohan",
+          type: "call",
+          startedAt: new Date(Date.now() - 5 * 60000),
+        },
+      ],
+
+      recentTransactions: [
+        {
+          id: "txn201",
+          amount: 50,
+          type: "chat",
+          time: new Date().toISOString(),
+        },
+        {
+          id: "txn202",
+          amount: 30,
+          type: "call",
+          time: new Date().toISOString(),
+        },
+      ],
+
+      recentHistory: [
+        {
+          user: "Amit",
+          type: "chat",
+          duration: 10,
+          time: new Date().toISOString(),
+        },
+        {
+          user: "Kunal",
+          type: "call",
+          duration: 7,
+          time: new Date().toISOString(),
+        },
+      ],
+    };
+
+    return res.json(dashboardData);
+
+  } catch (error) {
+    console.error("Dashboard Error:", error);
+    return res.status(500).json({ message: "Server error", error: error.message });
+  }
+};
+
+
+
+/* =========================================================
+     UPDATE ONLINE/OFFLINE STATUS
+   ========================================================= */
+export const updatePanditStatus = async (req, res) => {
+  try {
+    const panditId = req.params.id;
+    const { isOnline } = req.body;
+
+    panditStatuses[panditId] = isOnline;
+
+    return res.json({
+      success: true,
+      panditId,
+      isOnline,
+      message: `Status updated to ${isOnline ? "Online" : "Offline"}`,
+    });
+  } catch (error) {
+    console.error("❌ Error in updatePanditStatus:", error);
+    return res.status(500).json({ error: "Unable to update status" });
+  }
+};

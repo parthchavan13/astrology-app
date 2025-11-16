@@ -1,45 +1,48 @@
-import StatCard from "../../components/AdminComponents/StatCard";
-import {
-  BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer
-} from "recharts"  ;
+// src/pages/Admin/AdminDashboard.jsx
+import React, { useEffect, useState } from "react";
+import axios from "axios";
+import { useNavigate } from "react-router-dom";
+import AdminNavbar from "./AdminNavbar";
 
-const Dashboard = () => {
-  const data = [
-    { name: "Mon", sessions: 12 },
-    { name: "Tue", sessions: 18 },
-    { name: "Wed", sessions: 22 },
-    { name: "Thu", sessions: 15 },
-    { name: "Fri", sessions: 25 },
-    { name: "Sat", sessions: 9 },
-    { name: "Sun", sessions: 30 },
-  ];
+const AdminDashboard = () => {
+  const [stats, setStats] = useState({});
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    const fetchStats = async () => {
+      const token = localStorage.getItem("adminToken");
+      if (!token) return navigate("/admin/login");
+
+      const res = await axios.get("/api/admin/dashboard", {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      setStats(res.data);
+    };
+    fetchStats();
+  }, []);
 
   return (
-    <div>
-      <h2 className="text-2xl font-semibold mb-6">Dashboard Overview</h2>
-
-      {/* Stat Cards */}
-      <div className="grid grid-cols-4 gap-6 mb-8">
-        <StatCard title="Total Pandits" value="54" />
-        <StatCard title="Active Users" value="320" />
-        <StatCard title="Monthly Revenue" value="₹48,200" />
-        <StatCard title="Sessions Today" value="12" />
-      </div>
-
-      {/* Chart */}
-      <div className="bg-white rounded-xl p-6 shadow-md">
-        <h3 className="text-lg font-semibold mb-4">Weekly Sessions</h3>
-        <ResponsiveContainer width="100%" height={300}>
-          <BarChart data={data}>
-            <XAxis dataKey="name" />
-            <YAxis />
-            <Tooltip />
-            <Bar dataKey="sessions" fill="#6366F1" radius={6} />
-          </BarChart>
-        </ResponsiveContainer>
+    <div className="min-h-screen bg-gray-100">
+      <AdminNavbar />
+      <div className="p-8">
+        <h1 className="text-2xl font-bold mb-6">Admin Dashboard</h1>
+        <div className="grid grid-cols-3 gap-4">
+          <div className="bg-white p-6 rounded-xl shadow">
+            <p className="text-gray-600">Total Pandits</p>
+            <h2 className="text-3xl font-semibold">{stats.totalPandits}</h2>
+          </div>
+          <div className="bg-white p-6 rounded-xl shadow">
+            <p className="text-gray-600">Pending Requests</p>
+            <h2 className="text-3xl font-semibold">{stats.pendingPandits}</h2>
+          </div>
+          <div className="bg-white p-6 rounded-xl shadow">
+            <p className="text-gray-600">Total Earnings</p>
+            <h2 className="text-3xl font-semibold">₹{stats.totalEarnings}</h2>
+          </div>
+        </div>
       </div>
     </div>
   );
 };
 
-export default Dashboard;
+export default AdminDashboard;

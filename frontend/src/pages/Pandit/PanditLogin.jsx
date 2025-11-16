@@ -1,44 +1,47 @@
 import React, { useState } from "react";
-import { loginPandit } from "../../services/api";
+import { loginPandit } from "../../services/authApi";
 import { useNavigate } from "react-router-dom";
-import { Eye, EyeOff } from "lucide-react"; // 👁️ add this line
+import { Eye, EyeOff } from "lucide-react";
 
 const PanditLogin = () => {
   const navigate = useNavigate();
   const [formData, setFormData] = useState({ email: "", password: "" });
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
-  const [showPassword, setShowPassword] = useState(false); // 👁️ state for eye icon
+  const [showPassword, setShowPassword] = useState(false);
 
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
   const handleSubmit = async (e) => {
+    console.log("✔ LOGIN SUCCESS:", res);
     e.preventDefault();
-    setLoading(true);
     setError("");
-    console.log('Form data:', formData);
+    setLoading(true);
+
     try {
       const res = await loginPandit(formData);
-      console.log("Res",res);
-      console.log("Res.data",res.data);
-      if (res.status === 200 && res.data?.success) {
-        const { token, data } = res.data;
-        console.log("Token and data", token , data);
-        localStorage.setItem("panditToken", token);
-        localStorage.setItem("panditId", data._id);
-        console.log("ID is",data._id);
-        console.log("Logged in Pandit:", data);
-        navigate(`/pandit/${data._id}/dashboard`);
+
+      console.log("🔵 LOGIN RESPONSE:", res);
+
+      if (res?.success) {
+        const { token, data: pandit } = res;
+
+        localStorage.setItem("token", token);
+        localStorage.setItem("role", "pandit");
+        localStorage.setItem("panditId", pandit._id);
+        localStorage.setItem("pandit", JSON.stringify(pandit));
+
+        console.log("🔵 LOGIN RESPONSE:", res);
+        // navigate("/pandit/dashboard");
       } else {
         setError("Invalid login response. Please try again.");
       }
     } catch (err) {
-      console.error("Login Error:", err);
-      setError(err.response?.data?.message || "Invalid email or password.");
+      setError(err?.response?.data?.message || "Login failed");
     } finally {
-      setLoading(false); // ✅ always reset loading after completion
+      setLoading(false);
     }
   };
 
@@ -55,7 +58,7 @@ const PanditLogin = () => {
           </p>
         )}
 
-        <form onSubmit={handleSubmit} className="space-y-5">
+        <form onSubmit={handleSubmit} className="space-y-5" method="POST">
           <div>
             <label className="block text-white text-sm mb-1">Email</label>
             <input
@@ -80,7 +83,7 @@ const PanditLogin = () => {
               className="w-full p-2 pr-10 text-white rounded-lg bg-[#0b0f29] border border-[#2e3261] focus:border-[#d4af37] outline-none"
               required
             />
-            {/* 👁️ Eye icon toggle */}
+
             <span
               onClick={() => setShowPassword(!showPassword)}
               className="absolute right-3 top-9 cursor-pointer text-gray-400 hover:text-[#d4af37]"

@@ -1,15 +1,31 @@
+// backend/models/chat.js
 import mongoose from "mongoose";
 
 const chatSessionSchema = new mongoose.Schema(
   {
-    userId: { type: mongoose.Schema.Types.ObjectId, ref: "User", required: true },
-    panditId: { type: mongoose.Schema.Types.ObjectId, ref: "Pandit", required: true },
-    roomId: { type: String, required: true, unique: true },
-    isActive: { type: Boolean, default: false },
+    userId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "User",
+      required: true,
+    },
+    panditId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Pandit",
+      required: true,
+    },
+    roomId: {
+      type: String,
+      required: true,
+      unique: true,
+    },
+    isActive: {
+      type: Boolean,
+      default: false,
+    },
     messages: [
       {
-        sender: String,
-        text: String,
+        sender: { type: String, required: true },
+        text: { type: String, required: true },
         time: { type: Date, default: Date.now },
       },
     ],
@@ -17,4 +33,8 @@ const chatSessionSchema = new mongoose.Schema(
   { timestamps: true }
 );
 
-export default mongoose.model("ChatSession", chatSessionSchema);
+// ✅ Define the model
+const ChatSession = mongoose.model("ChatSession", chatSessionSchema);
+
+// ✅ Export it as default (so `import ChatSession from "../models/chat.js"` works)
+export default ChatSession;
